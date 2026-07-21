@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Press Start 2P", ui-monospace, monospace;
+}
+
+/* Image pixelated rendering for retro styles */
+.image-render-pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
