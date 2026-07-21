@@ -1518,16 +1518,16 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   }, []); // Fully stable dependencies: loop is initiated once and runs continuously
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center pt-16 select-none bg-slate-950">
+    <div className="relative w-full h-full flex items-center justify-center pt-12 sm:pt-16 select-none bg-slate-950">
       {/* Scanline Screen Retro Effect Overlay */}
-      <div className="absolute inset-0 top-16 pointer-events-none z-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.08)_50%)] bg-[length:100%_4px]" />
+      <div className="absolute inset-0 top-12 sm:top-16 pointer-events-none z-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.08)_50%)] bg-[length:100%_4px]" />
 
       <canvas
         ref={canvasRef}
         id="gameCanvas"
         width={800}
         height={450}
-        className="w-full max-w-[800px] aspect-[16/9] border-4 border-red-800 rounded bg-black outline-none block image-render-pixelated shadow-2xl"
+        className="w-full max-w-full max-h-full aspect-[16/9] border-2 sm:border-4 border-red-800 rounded bg-black outline-none block image-render-pixelated shadow-2xl"
         tabIndex={1}
       />
 

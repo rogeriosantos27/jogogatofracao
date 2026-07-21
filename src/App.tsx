@@ -21,6 +21,42 @@ export default function App() {
   const [soundMuted, setSoundMuted] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
+  const [isPortrait, setIsPortrait] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+
+  // Detect orientation and touch capabilities
+  useEffect(() => {
+    const handleResize = () => {
+      setIsPortrait(window.innerHeight > window.innerWidth);
+      setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = isPortrait;
+
+  // Keyboard Event Simulation for Mobile controls
+  const simulateKeyDown = (key: string, code: string) => {
+    const event = new KeyboardEvent('keydown', {
+      key,
+      code,
+      bubbles: true,
+      cancelable: true,
+    });
+    window.dispatchEvent(event);
+  };
+
+  const simulateKeyUp = (key: string, code: string) => {
+    const event = new KeyboardEvent('keyup', {
+      key,
+      code,
+      bubbles: true,
+      cancelable: true,
+    });
+    window.dispatchEvent(event);
+  };
 
   // Core entities
   const [player, setPlayer] = useState<Player>({
@@ -241,20 +277,31 @@ export default function App() {
   }, [gameState]);
 
   return (
-    <div className="relative w-screen h-screen bg-slate-950 flex items-center justify-center overflow-hidden">
-      <div className="relative w-full max-w-[800px] h-full max-h-[450px] aspect-[16/9] border-8 border-red-700 rounded-md overflow-hidden bg-black shadow-2xl ring-4 ring-amber-400 select-none">
+    <div className="relative w-screen h-screen bg-slate-950 flex flex-col items-center justify-center overflow-hidden font-mono select-none p-0 sm:p-4">
+      {/* Background visual graphics */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black pointer-events-none" />
+
+      {/* Main 16:9 Screen container with unified, flawless scaling */}
+      <div
+        className="relative w-full aspect-[16/9] border-2 sm:border-8 border-red-700 rounded sm:rounded-lg shadow-2xl ring-1 sm:ring-4 ring-amber-400 bg-black overflow-hidden flex flex-col justify-between"
+        style={{
+          width: '100%',
+          maxWidth: 'min(100%, min(177.78vh, 1200px))',
+          maxHeight: 'min(100vh, 675px)',
+        }}
+      >
         
         {/* State Machine screens */}
         {gameState === 'MENU' && (
-          <div className="absolute inset-0 bg-gradient-to-b from-indigo-950 via-slate-900 to-red-950 flex flex-col justify-between p-8 text-center z-50 select-none">
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-950 via-slate-900 to-red-950 flex flex-col justify-between p-4 sm:p-8 text-center z-50 select-none">
             {/* Ambient snow background simulation */}
             <div className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent" />
 
-            <div className="mt-12 space-y-4">
+            <div className="mt-4 sm:mt-12 space-y-2 sm:space-y-4">
               <motion.div
                 initial={{ y: -30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-400/30 px-3 py-1 rounded-full text-amber-400 text-[10px] font-bold tracking-widest font-mono"
+                className="inline-flex items-center gap-1.5 sm:gap-2 bg-amber-500/15 border border-amber-400/30 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-amber-400 text-[8px] sm:text-[10px] font-bold tracking-widest font-mono"
               >
                 <Sparkles size={11} className="animate-spin text-amber-400" /> ROGERIO SANTOS
               </motion.div>
@@ -263,18 +310,18 @@ export default function App() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="text-2xl sm:text-3xl font-extrabold tracking-wider text-yellow-400 font-mono drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]"
+                className="text-sm xs:text-base sm:text-2xl md:text-3xl font-extrabold tracking-wider text-yellow-400 font-mono drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]"
               >
                 ILHA DOS CAMPEÕES DE FRAÇÃO 🐾
               </motion.h1>
 
-              <p className="text-[10px] sm:text-xs text-slate-300 max-w-md mx-auto leading-relaxed font-mono">
+              <p className="text-[7.5px] xs:text-[8.5px] sm:text-xs text-slate-300 max-w-xs sm:max-w-md mx-auto leading-relaxed font-mono">
                 Aprenda simplificação, soma com denominadores iguais e frações com MMC enfrentando os campeões esportivos lendários!
               </p>
             </div>
 
             {/* Menu Controls */}
-            <div className="mb-8 space-y-3">
+            <div className="mb-4 sm:mb-8 space-y-2 sm:space-y-3">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -284,12 +331,12 @@ export default function App() {
                   setGameState('EXPLORACAO');
                   showNotificationMessage('Bem-vindo à Ilha! Encontre os 7 Campeões Sagrados!');
                 }}
-                className="px-8 py-3 bg-red-700 hover:bg-red-600 border-2 border-amber-400 text-white font-bold text-xs rounded shadow-lg transition-transform hover:shadow-red-950 cursor-pointer inline-flex items-center gap-2 font-mono tracking-wider"
+                className="px-4 sm:px-8 py-1.5 sm:py-3 bg-red-700 hover:bg-red-600 border-2 border-amber-400 text-white font-bold text-[9px] sm:text-xs rounded shadow-lg transition-transform hover:shadow-red-950 cursor-pointer inline-flex items-center gap-1.5 sm:gap-2 font-mono tracking-wider"
               >
                 <Play size={12} className="fill-white" /> JOGAR AGORA [ESPAÇO]
               </motion.button>
 
-              <div className="flex justify-center gap-4 text-[9px] text-slate-500 font-mono">
+              <div className="flex justify-center gap-4 text-[8px] sm:text-[10px] text-slate-500 font-mono">
                 <button onClick={() => setShowHelp(true)} className="hover:text-slate-300 transition-colors cursor-pointer flex items-center gap-1">
                   <Info size={10} /> Como Jogar
                 </button>
@@ -307,33 +354,33 @@ export default function App() {
 
         {/* WIN_GAME Screen */}
         {gameState === 'WIN_GAME' && (
-          <div className="absolute inset-0 bg-gradient-to-b from-yellow-950 via-slate-900 to-emerald-950 flex flex-col justify-between p-8 text-center z-50 select-none font-mono">
-            <div className="mt-12 space-y-4">
+          <div className="absolute inset-0 bg-gradient-to-b from-yellow-950 via-slate-900 to-emerald-950 flex flex-col justify-between p-4 sm:p-8 text-center z-50 select-none font-mono">
+            <div className="mt-4 sm:mt-12 space-y-2 sm:space-y-4">
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ repeat: Infinity, duration: 2 }}
                 className="inline-flex justify-center text-yellow-400"
               >
-                <Trophy size={48} className="drop-shadow-[0_4px_12px_rgba(250,204,21,0.5)] fill-yellow-400/20" />
+                <Trophy className="w-8 h-8 sm:w-12 sm:h-12 drop-shadow-[0_4px_12px_rgba(250,204,21,0.5)] fill-yellow-400/20" />
               </motion.div>
 
-              <h1 className="text-xl sm:text-2xl font-black text-yellow-400 tracking-widest uppercase">
+              <h1 className="text-sm sm:text-2xl font-black text-yellow-400 tracking-widest uppercase">
                 GRANDE CAMPEÃO DA ILHA! 🏅👑
               </h1>
 
-              <p className="text-xs text-slate-200 max-w-md mx-auto leading-relaxed">
+              <p className="text-[8px] sm:text-xs text-slate-200 max-w-xs sm:max-w-md mx-auto leading-relaxed">
                 Parabéns! Você resolveu com maestria todos os desafios de frações dos deuses e unificou a paz e a sabedoria em toda a Champion Island!
               </p>
             </div>
 
             <button
               onClick={handleRestartGame}
-              className="px-6 py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded border-2 border-yellow-400 cursor-pointer shadow-lg mx-auto inline-flex items-center gap-2 transition-transform hover:scale-105 active:scale-95"
+              className="px-4 sm:px-6 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-[10px] sm:text-xs rounded border border-yellow-400 cursor-pointer shadow-lg mx-auto inline-flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 mb-4"
             >
               <RotateCcw size={12} /> JOGAR NOVAMENTE
             </button>
 
-            <div className="text-[8px] text-slate-500 tracking-wider">
+            <div className="text-[7px] sm:text-[8px] text-slate-500 tracking-wider mb-2">
               Obrigado por completar o Fraction Champion Island! 🐾
             </div>
           </div>
@@ -364,7 +411,6 @@ export default function App() {
               setActiveNpc(null);
             }}
             onCreateExplosion={(x, y, color) => {
-              // Procedurally spawn particles in active buffer
               const explosionSparks: Particle[] = [];
               for (let i = 0; i < 20; i++) {
                 const angle = Math.random() * Math.PI * 2;
@@ -394,7 +440,7 @@ export default function App() {
               initial={{ x: 100, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 100, opacity: 0 }}
-              className="absolute top-18 right-4 bg-slate-900 border-l-4 border-yellow-500 text-slate-200 px-4 py-2.5 rounded text-[10px] font-mono shadow-lg z-50 flex items-center gap-2 max-w-xs"
+              className="absolute top-14 sm:top-18 right-4 bg-slate-900 border-l-4 border-yellow-500 text-slate-200 px-3 sm:px-4 py-1.5 sm:py-2.5 rounded text-[8px] sm:text-[10px] font-mono shadow-lg z-50 flex items-center gap-1.5 sm:gap-2 max-w-[200px] sm:max-w-xs"
             >
               <span>🔔</span>
               <span>{notification}</span>
@@ -403,17 +449,19 @@ export default function App() {
         </AnimatePresence>
 
         {/* Global HUD Layout */}
-        <GameHUD
-          playerHp={player.hp}
-          playerMaxHp={player.maxHp}
-          playerLevel={player.level}
-          playerCristais={player.cristais}
-          pocoes={potionsCount}
-          onUsePotion={triggerUsePotion}
-          onOpenHelp={() => setShowHelp(true)}
-          soundMuted={soundMuted}
-          onToggleSound={handleToggleSound}
-        />
+        {(gameState === 'EXPLORACAO' || gameState === 'DIALOGO') && (
+          <GameHUD
+            playerHp={player.hp}
+            playerMaxHp={player.maxHp}
+            playerLevel={player.level}
+            playerCristais={player.cristais}
+            pocoes={potionsCount}
+            onUsePotion={triggerUsePotion}
+            onOpenHelp={() => setShowHelp(true)}
+            soundMuted={soundMuted}
+            onToggleSound={handleToggleSound}
+          />
+        )}
 
         {/* The World Game Canvas */}
         <GameCanvas
@@ -436,6 +484,90 @@ export default function App() {
           }}
         />
 
+        {/* Translucent overlay controls on Mobile/Touch */}
+        {(gameState === 'EXPLORACAO' || gameState === 'DIALOGO') && isTouch && (
+          <div className="absolute inset-x-0 bottom-0 top-12 pointer-events-none z-40 select-none">
+            {/* D-PAD arrow controls on Bottom-Left */}
+            <div className="absolute bottom-2 left-2 w-28 h-28 flex items-center justify-center pointer-events-auto">
+              <div className="relative w-24 h-24 bg-slate-950/20 backdrop-blur-xs rounded-full border border-white/5 flex items-center justify-center">
+                {/* UP Arrow */}
+                <button
+                  onPointerDown={() => simulateKeyDown('w', 'KeyW')}
+                  onPointerUp={() => simulateKeyUp('w', 'KeyW')}
+                  onPointerLeave={() => simulateKeyUp('w', 'KeyW')}
+                  onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('w', 'KeyW'); }}
+                  onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp('w', 'KeyW'); }}
+                  className="absolute top-0.5 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-slate-950/50 active:bg-white/30 text-white/80 border border-white/10 flex items-center justify-center text-xs font-bold transition-colors shadow-sm"
+                >
+                  ▲
+                </button>
+                {/* LEFT Arrow */}
+                <button
+                  onPointerDown={() => simulateKeyDown('a', 'KeyA')}
+                  onPointerUp={() => simulateKeyUp('a', 'KeyA')}
+                  onPointerLeave={() => simulateKeyUp('a', 'KeyA')}
+                  onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('a', 'KeyA'); }}
+                  onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp('a', 'KeyA'); }}
+                  className="absolute left-0.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/50 active:bg-white/30 text-white/80 border border-white/10 flex items-center justify-center text-xs font-bold transition-colors shadow-sm"
+                >
+                  ◀
+                </button>
+                {/* RIGHT Arrow */}
+                <button
+                  onPointerDown={() => simulateKeyDown('d', 'KeyD')}
+                  onPointerUp={() => simulateKeyUp('d', 'KeyD')}
+                  onPointerLeave={() => simulateKeyUp('d', 'KeyD')}
+                  onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('d', 'KeyD'); }}
+                  onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp('d', 'KeyD'); }}
+                  className="absolute right-0.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/50 active:bg-white/30 text-white/80 border border-white/10 flex items-center justify-center text-xs font-bold transition-colors shadow-sm"
+                >
+                  ▶
+                </button>
+                {/* DOWN Arrow */}
+                <button
+                  onPointerDown={() => simulateKeyDown('s', 'KeyS')}
+                  onPointerUp={() => simulateKeyUp('s', 'KeyS')}
+                  onPointerLeave={() => simulateKeyUp('s', 'KeyS')}
+                  onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('s', 'KeyS'); }}
+                  onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp('s', 'KeyS'); }}
+                  className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-slate-950/50 active:bg-white/30 text-white/80 border border-white/10 flex items-center justify-center text-xs font-bold transition-colors shadow-sm"
+                >
+                  ▼
+                </button>
+              </div>
+            </div>
+
+            {/* Action buttons (A and B) on Bottom-Right */}
+            <div className="absolute bottom-2 right-2 flex items-center gap-2 sm:gap-3 pointer-events-auto">
+              {/* Button B - Cura/Poção */}
+              <div className="flex flex-col items-center">
+                <button
+                  onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('p', 'KeyP'); setTimeout(() => simulateKeyUp('p', 'KeyP'), 100); }}
+                  onClick={() => { simulateKeyDown('p', 'KeyP'); setTimeout(() => simulateKeyUp('p', 'KeyP'), 100); }}
+                  className="w-10 h-10 rounded-full bg-emerald-600/20 active:bg-emerald-500/40 text-emerald-300 font-extrabold border border-emerald-500/20 shadow-md backdrop-blur-xs flex items-center justify-center text-[10px] sm:text-xs transition-colors"
+                >
+                  B
+                </button>
+                <span className="text-[6px] text-stone-400 font-bold uppercase tracking-wider mt-0.5">Cura</span>
+              </div>
+
+              {/* Button A - Interagir/Ação */}
+              <div className="flex flex-col items-center">
+                <button
+                  onPointerDown={() => simulateKeyDown(' ', 'Space')}
+                  onPointerUp={() => simulateKeyUp(' ', 'Space')}
+                  onTouchStart={(e) => { e.preventDefault(); simulateKeyDown(' ', 'Space'); }}
+                  onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp(' ', 'Space'); }}
+                  className="w-11 h-11 rounded-full bg-rose-600/25 active:bg-rose-500/45 text-rose-300 font-extrabold border border-rose-500/25 shadow-md backdrop-blur-xs flex items-center justify-center text-xs sm:text-sm transition-colors"
+                >
+                  A
+                </button>
+                <span className="text-[6px] text-stone-400 font-bold uppercase tracking-wider mt-0.5">Ação</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Instructions overlay modal */}
         <AnimatePresence>
           {showHelp && (
@@ -443,18 +575,18 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-950/90 flex items-center justify-center p-6 z-50 select-none font-mono"
+              className="absolute inset-0 bg-slate-950/90 flex items-center justify-center p-4 sm:p-6 z-50 select-none font-mono"
             >
-              <div className="w-full max-w-md bg-slate-900 border-2 border-amber-500 rounded p-5 relative">
+              <div className="w-full max-w-md bg-slate-900 border-2 border-amber-500 rounded p-4 sm:p-5 relative">
                 <h3 className="text-xs sm:text-sm font-bold text-yellow-400 mb-3 tracking-wider text-center border-b border-slate-800 pb-2">
                   🎮 GUIA DO CAMPEÃO FRACIONÁRIO
                 </h3>
                 
-                <div className="space-y-3.5 text-[10px] text-slate-300 leading-relaxed mb-5">
+                <div className="space-y-2 sm:space-y-3 text-[8px] sm:text-[10px] text-slate-300 leading-relaxed mb-4 sm:mb-5">
                   <div className="flex items-start gap-2">
                     <span className="bg-slate-950 px-1 py-0.5 rounded text-amber-300 border border-slate-800 font-bold">W,A,S,D</span>
                     <span>ou</span>
-                    <span className="bg-slate-950 px-1 py-0.5 rounded text-amber-300 border border-slate-800 font-bold">Seta</span>
+                    <span className="bg-slate-950 px-1 py-0.5 rounded text-amber-300 border border-slate-800 font-bold">Setas</span>
                     <span>Andar pela ilha e cruzar as pontes.</span>
                   </div>
 
@@ -470,7 +602,7 @@ export default function App() {
                     <span>Usar poção de cura instantânea (+35 HP).</span>
                   </div>
 
-                  <p className="border-t border-slate-800 pt-3.5 text-[9px] text-amber-400/80">
+                  <p className="border-t border-slate-800 pt-3.5 text-[7px] sm:text-[9px] text-amber-400/80">
                     💡 <strong>Dica de Sobrevivência:</strong> Abra os baús amarelos no mapa para coletar mais poções. Você precisará de todas as 6 medalhas para passar pela barreira de lava do Oni Supremo!
                   </p>
                 </div>
@@ -480,7 +612,7 @@ export default function App() {
                     Som.click();
                     setShowHelp(false);
                   }}
-                  className="w-full py-2 bg-red-700 hover:bg-red-600 text-white font-bold text-xs rounded border border-red-500 cursor-pointer transition-transform hover:scale-105"
+                  className="w-full py-2 bg-red-700 hover:bg-red-600 text-white font-bold text-[10px] sm:text-xs rounded border border-red-500 cursor-pointer transition-transform hover:scale-105"
                 >
                   FECHAR GUIA
                 </button>

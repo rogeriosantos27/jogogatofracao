@@ -91,10 +91,10 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ npc, onComplete, onClo
   }, [isTyping, currentLineIdx]);
 
   return (
-    <div className="absolute inset-x-0 bottom-6 flex justify-center px-4 z-40 select-none">
+    <div className="absolute inset-x-0 bottom-1 sm:bottom-4 flex justify-center px-2 sm:px-4 z-40 select-none">
       <div 
         onClick={handleAdvance}
-        className="w-full max-w-[720px] bg-slate-950/95 border-4 border-red-700 rounded-lg shadow-2xl p-4 flex flex-col justify-between cursor-pointer border-double ring-4 ring-amber-500/80 transition-all hover:brightness-110"
+        className="w-full max-w-[720px] bg-slate-950/95 border-2 sm:border-4 border-red-700 rounded shadow-2xl p-2 sm:p-4 flex flex-col justify-between cursor-pointer border-double ring-2 sm:ring-4 ring-amber-500/80 transition-all hover:brightness-110"
       >
         {/* Dialogue header / NPC name */}
         <div className="flex items-center gap-3 border-b-2 border-red-900 pb-2 mb-2">

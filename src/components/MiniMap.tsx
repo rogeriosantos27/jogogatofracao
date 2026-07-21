@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Player, NPC, Chest } from '../types';
 import { MapManager } from '../map';
+import { Som } from '../sound';
 
 interface MiniMapProps {
   player: Player;
@@ -16,6 +17,26 @@ interface MiniMapProps {
 
 export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManager }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
+      // Auto collapse on mobile
+      if (mobile) {
+        setCollapsed(true);
+      } else {
+        setCollapsed(false);
+      }
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -120,13 +141,33 @@ export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManag
 
   }, [player, npcs, chests, mapManager]);
 
+  if (collapsed) {
+    return (
+      <button
+        onClick={() => {
+          Som.click();
+          setCollapsed(false);
+        }}
+        className={`absolute ${isTouch ? 'bottom-20 right-2' : 'bottom-2 right-2 sm:bottom-4 sm:right-4'} bg-slate-950/95 hover:bg-slate-900 border-2 border-red-700 rounded-full px-3 py-1.5 shadow-2xl flex items-center gap-1 select-none pointer-events-auto z-20 text-[9px] font-mono font-bold text-amber-400 cursor-pointer transition-transform hover:scale-105 active:scale-95`}
+      >
+        🗺️ MAPA
+      </button>
+    );
+  }
+
   return (
-    <div className="absolute bottom-4 right-4 bg-slate-950/90 border-2 border-red-700/80 rounded p-1.5 shadow-2xl flex flex-col items-center gap-1.5 select-none pointer-events-auto z-20">
-      <div className="flex items-center justify-between w-full px-1">
+    <div className={`absolute ${isTouch ? 'bottom-20 right-2' : 'bottom-2 right-2 sm:bottom-4 sm:right-4'} bg-slate-950/95 border-2 border-red-700/80 rounded p-1.5 shadow-2xl flex flex-col items-center gap-1.5 select-none pointer-events-auto z-20 w-[146px]`}>
+      <div className="flex items-center justify-between w-full px-1 gap-2">
         <span className="text-[7.5px] font-extrabold text-amber-400 font-mono tracking-widest">MAPA DA ILHA</span>
-        <span className="text-[7px] text-emerald-400 font-mono flex items-center gap-1 animate-pulse">
-          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block" /> ONLINE
-        </span>
+        <button
+          onClick={() => {
+            Som.click();
+            setCollapsed(true);
+          }}
+          className="text-[9px] text-red-400 hover:text-red-300 px-1 font-bold cursor-pointer font-mono"
+        >
+          [X]
+        </button>
       </div>
       
       <div className="relative border border-slate-800 rounded overflow-hidden">
@@ -138,15 +179,15 @@ export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManag
         />
       </div>
 
-      <div className="flex gap-2 text-[6.5px] font-mono text-slate-300">
+      <div className="flex gap-1.5 text-[6px] font-mono text-slate-300 leading-none">
         <div className="flex items-center gap-0.5">
-          <span className="w-1.5 h-1.5 bg-white rounded-full inline-block border border-black" /> Você
+          <span className="w-1 h-1 bg-white rounded-full inline-block border border-black" /> Você
         </div>
         <div className="flex items-center gap-0.5">
-          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full inline-block" /> Campeão
+          <span className="w-1 h-1 bg-purple-400 rounded-full inline-block" /> Champ
         </div>
         <div className="flex items-center gap-0.5">
-          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full inline-block" /> Baú
+          <span className="w-1 h-1 bg-amber-500 rounded-full inline-block" /> Baú
         </div>
       </div>
     </div>
