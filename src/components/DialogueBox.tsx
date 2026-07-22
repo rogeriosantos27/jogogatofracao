@@ -91,7 +91,14 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ npc, onComplete, onClo
   }, [isTyping, currentLineIdx]);
 
   return (
-    <div className="absolute inset-x-0 bottom-1 sm:bottom-4 flex justify-center px-2 sm:px-4 z-40 select-none">
+    <div 
+      className="absolute inset-x-0 bottom-1 sm:bottom-4 flex justify-center px-2 sm:px-4 z-40 select-none"
+      style={{
+        paddingLeft: 'calc(0.5rem + env(safe-area-inset-left, 0px))',
+        paddingRight: 'calc(0.5rem + env(safe-area-inset-right, 0px))',
+        paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom, 0px))',
+      }}
+    >
       <div 
         onClick={handleAdvance}
         className="w-full max-w-[720px] bg-slate-950/95 border-2 sm:border-4 border-red-700 rounded shadow-2xl p-2 sm:p-4 flex flex-col justify-between cursor-pointer border-double ring-2 sm:ring-4 ring-amber-500/80 transition-all hover:brightness-110"
@@ -103,23 +110,23 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ npc, onComplete, onClo
             className="w-4 h-4 rounded-full border border-amber-500 animate-pulse"
             style={{ backgroundColor: npc.color }}
           />
-          <span className="text-xs font-extrabold text-amber-400 font-mono tracking-wider uppercase">
+          <span className="text-[10px] sm:text-xs font-extrabold text-amber-400 font-mono tracking-wider uppercase">
             {npc.nome}
           </span>
         </div>
 
         {/* Dialogue main text */}
-        <div className="text-slate-200 text-xs leading-relaxed min-h-[48px] font-mono whitespace-normal py-1 pr-4">
+        <div className="text-slate-200 text-[10px] sm:text-xs leading-relaxed min-h-[44px] sm:min-h-[48px] font-mono whitespace-normal py-1 pr-4 break-words">
           {displayedText}
           {isTyping && <span className="inline-block w-2 h-3.5 bg-amber-400 ml-1 animate-ping" />}
         </div>
 
         {/* Legend footer */}
-        <div className="flex justify-between items-center mt-2 text-[9px] font-mono text-slate-500">
-          <span className="text-slate-600 hover:text-slate-400" onClick={(e) => { e.stopPropagation(); onClose(); }}>
+        <div className="flex justify-between items-center mt-2 text-[8px] sm:text-[9px] font-mono text-slate-500">
+          <span className="text-slate-600 hover:text-slate-400 p-1" onClick={(e) => { e.stopPropagation(); onClose(); }}>
             [ESC] Sair
           </span>
-          <span className="text-amber-500/80 animate-bounce">
+          <span className="text-amber-500/80 animate-bounce p-1">
             [ESPAÇO] Avançar ➔
           </span>
         </div>

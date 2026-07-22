@@ -278,6 +278,27 @@ export const MinijogoScreen: React.FC<MinijogoScreenProps> = ({
   const [currentRound, setCurrentRound] = useState(1);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [showingExplanation, setShowingExplanation] = useState(true);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+
+  useEffect(() => {
+    const handleHeightResize = () => {
+      const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      setViewportHeight(h);
+    };
+    handleHeightResize();
+    window.addEventListener('resize', handleHeightResize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleHeightResize);
+    }
+    return () => {
+      window.removeEventListener('resize', handleHeightResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleHeightResize);
+      }
+    };
+  }, []);
+
+  const isShortHeight = viewportHeight < 500;
 
   const usedQuestionIdsRef = useRef<string[]>([]);
 
@@ -491,14 +512,18 @@ export const MinijogoScreen: React.FC<MinijogoScreenProps> = ({
       </div>
 
       {/* Main Challenge Area */}
-      <div className="my-auto flex flex-col items-center justify-center py-6 max-w-xl mx-auto w-full">
-        {/* Dynamic Sport Arena Widget */}
-        <SportVisual biome={biome} feedback={feedback} bossHp={bossHp} />
+      <div className={`my-auto flex flex-col items-center justify-center ${isShortHeight ? 'py-2' : 'py-6'} max-w-xl mx-auto w-full`}>
+        {/* Dynamic Sport Arena Widget - Hidden on short screen heights to save vertical real estate */}
+        {!isShortHeight && (
+          <div className="w-full mb-4">
+            <SportVisual biome={biome} feedback={feedback} bossHp={bossHp} />
+          </div>
+        )}
 
         {/* Question Panel */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-5 w-full text-center mb-6 relative">
-          <HelpCircle size={20} className="absolute -top-3 -left-3 text-amber-500 bg-slate-950 rounded-full" />
-          <p className="text-white text-xs sm:text-sm leading-relaxed tracking-wide font-medium">
+        <div className={`bg-slate-900/60 border border-slate-800 rounded-lg w-full text-center relative ${isShortHeight ? 'p-3 mb-3' : 'p-5 mb-6'}`}>
+          <HelpCircle size={isShortHeight ? 14 : 20} className="absolute -top-2.5 -left-2.5 text-amber-500 bg-slate-950 rounded-full" />
+          <p className={`text-white leading-relaxed tracking-wide font-medium ${isShortHeight ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'}`}>
             {question.question}
           </p>
         </div>
@@ -510,11 +535,11 @@ export const MinijogoScreen: React.FC<MinijogoScreenProps> = ({
               initial={{ scale: 0.3, opacity: 0 }}
               animate={{ scale: 1.1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
-              className={`text-sm font-black mb-6 flex items-center gap-2 tracking-widest uppercase ${
+              className={`font-black flex items-center gap-2 tracking-widest uppercase ${isShortHeight ? 'text-[10px] mb-2' : 'text-sm mb-6'} ${
                 feedback === 'correct' ? 'text-emerald-400' : 'text-rose-500'
               }`}
             >
-              <Sparkles size={16} className="animate-spin" />
+              <Sparkles size={isShortHeight ? 12 : 16} className="animate-spin" />
               {feedback === 'correct' ? '✦ ACERTO CRÍTICO! ✦' : '✖ DEFENSA FALHOU! ✖'}
             </motion.div>
           )}
@@ -522,9 +547,9 @@ export const MinijogoScreen: React.FC<MinijogoScreenProps> = ({
 
         {/* Render interactive coloring bar */}
         {question.partesTotais !== undefined && (
-          <div className="w-full flex flex-col items-center gap-6">
+          <div className={`w-full flex flex-col items-center ${isShortHeight ? 'gap-3' : 'gap-6'}`}>
             {/* Interactive Grid Bar */}
-            <div className="w-full h-16 bg-slate-950 border-4 border-amber-500 rounded overflow-hidden flex">
+            <div className={`w-full bg-slate-950 border-2 sm:border-4 border-amber-500 rounded overflow-hidden flex ${isShortHeight ? 'h-10' : 'h-16'}`}>
               {new Array(question.partesTotais).fill(null).map((_, i) => {
                 const isSelected = selectedCells[i];
                 return (
@@ -532,7 +557,7 @@ export const MinijogoScreen: React.FC<MinijogoScreenProps> = ({
                     key={i}
                     onClick={() => handleCellClick(i)}
                     disabled={feedback !== null}
-                    className={`flex-1 h-full border-r border-slate-800 last:border-none cursor-pointer transition-colors flex items-center justify-center font-bold text-xs select-none ${
+                    className={`flex-1 h-full border-r border-slate-800 last:border-none cursor-pointer transition-colors flex items-center justify-center font-bold text-[10px] sm:text-xs select-none min-h-[36px] ${
                       isSelected 
                         ? 'bg-emerald-500 hover:bg-emerald-400 text-white' 
                         : 'bg-slate-900 hover:bg-slate-800 text-slate-500'
@@ -548,11 +573,12 @@ export const MinijogoScreen: React.FC<MinijogoScreenProps> = ({
             <button
               onClick={handlePintarSubmit}
               disabled={feedback !== null}
-              className={`px-8 py-3 rounded-md font-bold text-xs transition-all tracking-wider flex items-center gap-2 select-none ${
+              className={`rounded-md font-bold text-[10px] sm:text-xs transition-all tracking-wider flex items-center gap-2 select-none ${isShortHeight ? 'py-2 px-6' : 'py-3 px-8'} ${
                 feedback !== null
                   ? 'bg-slate-800 text-slate-600 border border-slate-700 cursor-not-allowed'
                   : 'bg-red-700 hover:bg-red-600 active:scale-95 text-white border-2 border-amber-400 cursor-pointer shadow-lg hover:scale-105'
               }`}
+              style={{ minHeight: '44px' }}
             >
               🪄 LANÇAR FEITIÇO FRACIONÁRIO
             </button>
@@ -561,17 +587,18 @@ export const MinijogoScreen: React.FC<MinijogoScreenProps> = ({
 
         {/* Render multiple choice cards */}
         {question.alternatives && (
-          <div className="w-full flex flex-col gap-3">
+          <div className={`w-full flex flex-col ${isShortHeight ? 'gap-2' : 'gap-3'}`}>
             {question.alternatives.map((alt, i) => (
               <button
                 key={i}
                 onClick={() => handleMultipleChoice(i)}
                 disabled={feedback !== null}
-                className={`w-full py-3.5 px-6 rounded-md font-bold text-xs sm:text-sm text-center border-2 cursor-pointer transition-all ${
+                className={`w-full rounded-md font-bold text-[10px] sm:text-xs text-center border-2 cursor-pointer transition-all ${isShortHeight ? 'py-2 px-4' : 'py-3.5 px-6'} ${
                   feedback !== null
                     ? 'bg-slate-900/40 border-slate-800 text-slate-600'
-                    : 'bg-slate-900 border-amber-500 hover:bg-slate-800 text-slate-200 hover:text-white hover:border-white hover:scale-[1.02] active:scale-[0.98]'
+                    : 'bg-slate-900 border-amber-500 hover:bg-slate-800 text-slate-200 hover:text-white hover:border-white hover:scale-[1.01] active:scale-[0.99]'
                 }`}
+                style={{ minHeight: '44px' }}
               >
                 {alt}
               </button>

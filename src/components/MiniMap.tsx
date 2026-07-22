@@ -17,26 +17,30 @@ interface MiniMapProps {
 
 export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManager }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
   const [collapsed, setCollapsed] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
-      // Auto collapse on mobile
-      if (mobile) {
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+      const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsTouch(touch);
+      if (window.innerWidth < 640) {
         setCollapsed(true);
-      } else {
-        setCollapsed(false);
       }
     };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const isSmallScreen = viewportWidth < 640;
+  const isTablet = viewportWidth >= 640 && viewportWidth < 1024;
+
+  const mapWidth = isSmallScreen ? 96 : isTablet ? 116 : 132;
+  const mapHeight = isSmallScreen ? 72 : isTablet ? 87 : 99;
+  const containerWidthClass = isSmallScreen ? 'w-[110px]' : isTablet ? 'w-[130px]' : 'w-[146px]';
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -46,8 +50,8 @@ export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManag
 
     const cols = mapManager.COLS;
     const rows = mapManager.ROWS;
-    const w = canvas.width;
-    const h = canvas.height;
+    const w = mapWidth;
+    const h = mapHeight;
     const cellW = w / cols;
     const cellH = h / rows;
 
@@ -95,7 +99,7 @@ export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManag
       
       ctx.fillStyle = chest.aberto ? '#475569' : '#f59e0b'; // Gold for unopened, gray for opened
       ctx.beginPath();
-      ctx.arc((mc + 0.5) * cellW, (mr + 0.5) * cellH, 2.5, 0, Math.PI * 2);
+      ctx.arc((mc + 0.5) * cellW, (mr + 0.5) * cellH, isSmallScreen ? 1.5 : 2.5, 0, Math.PI * 2);
       ctx.fill();
     });
 
@@ -108,7 +112,7 @@ export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManag
       const isBlink = Math.sin(Date.now() / 150) > 0;
       ctx.fillStyle = isBlink ? '#c084fc' : npc.color;
       ctx.beginPath();
-      ctx.arc((mc + 0.5) * cellW, (mr + 0.5) * cellH, 3.5, 0, Math.PI * 2);
+      ctx.arc((mc + 0.5) * cellW, (mr + 0.5) * cellH, isSmallScreen ? 2.5 : 3.5, 0, Math.PI * 2);
       ctx.fill();
       
       // Draw tiny outline
@@ -122,9 +126,9 @@ export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManag
     const pRow = Math.floor(player.y / mapManager.TILE_SIZE);
     
     // Pulse ring
-    const pulseRadius = 4 + Math.abs(Math.sin(Date.now() / 200)) * 3;
+    const pulseRadius = (isSmallScreen ? 2.5 : 4) + Math.abs(Math.sin(Date.now() / 200)) * (isSmallScreen ? 1.5 : 3);
     ctx.strokeStyle = '#f97316';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = isSmallScreen ? 0.5 : 1;
     ctx.beginPath();
     ctx.arc((pCol + 0.5) * cellW, (pRow + 0.5) * cellH, pulseRadius, 0, Math.PI * 2);
     ctx.stroke();
@@ -132,14 +136,14 @@ export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManag
     // Player dot
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc((pCol + 0.5) * cellW, (pRow + 0.5) * cellH, 3, 0, Math.PI * 2);
+    ctx.arc((pCol + 0.5) * cellW, (pRow + 0.5) * cellH, isSmallScreen ? 2 : 3, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 0.5;
     ctx.stroke();
 
-  }, [player, npcs, chests, mapManager]);
+  }, [player, npcs, chests, mapManager, mapWidth, mapHeight, isSmallScreen]);
 
   if (collapsed) {
     return (
@@ -148,7 +152,13 @@ export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManag
           Som.click();
           setCollapsed(false);
         }}
-        className={`absolute ${isTouch ? 'bottom-20 right-2' : 'bottom-2 right-2 sm:bottom-4 sm:right-4'} bg-slate-950/95 hover:bg-slate-900 border-2 border-red-700 rounded-full px-3 py-1.5 shadow-2xl flex items-center gap-1 select-none pointer-events-auto z-20 text-[9px] font-mono font-bold text-amber-400 cursor-pointer transition-transform hover:scale-105 active:scale-95`}
+        className="absolute top-12 sm:top-18 right-2 sm:right-4 bg-slate-950/95 hover:bg-slate-900 border-2 border-red-700 rounded px-2.5 py-1.5 shadow-2xl flex items-center gap-1 select-none pointer-events-auto z-20 text-[8px] sm:text-[9px] font-mono font-bold text-amber-400 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+        style={{
+          marginTop: 'env(safe-area-inset-top, 0px)',
+          marginRight: 'env(safe-area-inset-right, 0px)',
+          minWidth: '48px',
+          minHeight: '48px',
+        }}
       >
         🗺️ MAPA
       </button>
@@ -156,37 +166,43 @@ export const MiniMap: React.FC<MiniMapProps> = ({ player, npcs, chests, mapManag
   }
 
   return (
-    <div className={`absolute ${isTouch ? 'bottom-20 right-2' : 'bottom-2 right-2 sm:bottom-4 sm:right-4'} bg-slate-950/95 border-2 border-red-700/80 rounded p-1.5 shadow-2xl flex flex-col items-center gap-1.5 select-none pointer-events-auto z-20 w-[146px]`}>
-      <div className="flex items-center justify-between w-full px-1 gap-2">
-        <span className="text-[7.5px] font-extrabold text-amber-400 font-mono tracking-widest">MAPA DA ILHA</span>
+    <div 
+      className={`absolute top-12 sm:top-18 right-2 sm:right-4 bg-slate-950/95 border-2 border-red-700/80 rounded p-1 sm:p-1.5 shadow-2xl flex flex-col items-center gap-1 sm:gap-1.5 select-none pointer-events-auto z-20 ${containerWidthClass}`}
+      style={{
+        marginTop: 'env(safe-area-inset-top, 0px)',
+        marginRight: 'env(safe-area-inset-right, 0px)',
+      }}
+    >
+      <div className="flex items-center justify-between w-full px-1 gap-1">
+        <span className="text-[6.5px] sm:text-[7.5px] font-extrabold text-amber-400 font-mono tracking-wider sm:tracking-widest truncate">MAPA ILHA</span>
         <button
           onClick={() => {
             Som.click();
             setCollapsed(true);
           }}
-          className="text-[9px] text-red-400 hover:text-red-300 px-1 font-bold cursor-pointer font-mono"
+          className="text-[8px] sm:text-[9px] text-red-400 hover:text-red-300 font-bold cursor-pointer font-mono p-1 min-w-[24px] min-h-[24px] flex items-center justify-center"
         >
           [X]
         </button>
       </div>
       
-      <div className="relative border border-slate-800 rounded overflow-hidden">
+      <div className="relative border border-slate-800 rounded overflow-hidden bg-slate-950">
         <canvas
           ref={canvasRef}
-          width={132}
-          height={99}
+          width={mapWidth}
+          height={mapHeight}
           className="block image-render-pixelated"
         />
       </div>
 
-      <div className="flex gap-1.5 text-[6px] font-mono text-slate-300 leading-none">
+      <div className="flex gap-1 text-[5px] sm:text-[6px] font-mono text-slate-300 leading-none scale-[0.95] sm:scale-100">
         <div className="flex items-center gap-0.5">
           <span className="w-1 h-1 bg-white rounded-full inline-block border border-black" /> Você
         </div>
         <div className="flex items-center gap-0.5">
           <span className="w-1 h-1 bg-purple-400 rounded-full inline-block" /> Champ
         </div>
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 animate-pulse">
           <span className="w-1 h-1 bg-amber-500 rounded-full inline-block" /> Baú
         </div>
       </div>

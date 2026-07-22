@@ -32,7 +32,19 @@ export default function App() {
     };
     handleResize();
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport.addEventListener('scroll', handleResize);
+    }
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+        window.visualViewport.removeEventListener('scroll', handleResize);
+      }
+    };
   }, []);
 
   const isMobile = isPortrait;
@@ -486,10 +498,19 @@ export default function App() {
 
         {/* Translucent overlay controls on Mobile/Touch */}
         {(gameState === 'EXPLORACAO' || gameState === 'DIALOGO') && isTouch && (
-          <div className="absolute inset-x-0 bottom-0 top-12 pointer-events-none z-40 select-none">
+          <div 
+            className={`absolute inset-x-0 bottom-0 top-12 pointer-events-none z-40 select-none transition-all duration-300 ${
+              gameState === 'DIALOGO' ? 'opacity-25 scale-90 pointer-events-none' : 'opacity-100'
+            }`}
+            style={{
+              paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom, 0px))',
+              paddingLeft: 'calc(0.5rem + env(safe-area-inset-left, 0px))',
+              paddingRight: 'calc(0.5rem + env(safe-area-inset-right, 0px))',
+            }}
+          >
             {/* D-PAD arrow controls on Bottom-Left */}
-            <div className="absolute bottom-2 left-2 w-28 h-28 flex items-center justify-center pointer-events-auto">
-              <div className="relative w-24 h-24 bg-slate-950/20 backdrop-blur-xs rounded-full border border-white/5 flex items-center justify-center">
+            <div className="absolute bottom-2 left-2 w-32 h-32 flex items-center justify-center pointer-events-auto">
+              <div className="relative w-28 h-28 bg-slate-950/30 backdrop-blur-xs rounded-full border border-white/10 flex items-center justify-center">
                 {/* UP Arrow */}
                 <button
                   onPointerDown={() => simulateKeyDown('w', 'KeyW')}
@@ -497,7 +518,8 @@ export default function App() {
                   onPointerLeave={() => simulateKeyUp('w', 'KeyW')}
                   onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('w', 'KeyW'); }}
                   onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp('w', 'KeyW'); }}
-                  className="absolute top-0.5 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-slate-950/50 active:bg-white/30 text-white/80 border border-white/10 flex items-center justify-center text-xs font-bold transition-colors shadow-sm"
+                  className="absolute top-0.5 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-slate-950/60 active:bg-white/40 text-white border border-white/15 flex items-center justify-center text-sm font-bold transition-colors shadow-sm"
+                  style={{ minWidth: '40px', minHeight: '40px' }}
                 >
                   ▲
                 </button>
@@ -508,7 +530,8 @@ export default function App() {
                   onPointerLeave={() => simulateKeyUp('a', 'KeyA')}
                   onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('a', 'KeyA'); }}
                   onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp('a', 'KeyA'); }}
-                  className="absolute left-0.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/50 active:bg-white/30 text-white/80 border border-white/10 flex items-center justify-center text-xs font-bold transition-colors shadow-sm"
+                  className="absolute left-0.5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/60 active:bg-white/40 text-white border border-white/15 flex items-center justify-center text-sm font-bold transition-colors shadow-sm"
+                  style={{ minWidth: '40px', minHeight: '40px' }}
                 >
                   ◀
                 </button>
@@ -519,7 +542,8 @@ export default function App() {
                   onPointerLeave={() => simulateKeyUp('d', 'KeyD')}
                   onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('d', 'KeyD'); }}
                   onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp('d', 'KeyD'); }}
-                  className="absolute right-0.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/50 active:bg-white/30 text-white/80 border border-white/10 flex items-center justify-center text-xs font-bold transition-colors shadow-sm"
+                  className="absolute right-0.5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/60 active:bg-white/40 text-white border border-white/15 flex items-center justify-center text-sm font-bold transition-colors shadow-sm"
+                  style={{ minWidth: '40px', minHeight: '40px' }}
                 >
                   ▶
                 </button>
@@ -530,7 +554,8 @@ export default function App() {
                   onPointerLeave={() => simulateKeyUp('s', 'KeyS')}
                   onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('s', 'KeyS'); }}
                   onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp('s', 'KeyS'); }}
-                  className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-slate-950/50 active:bg-white/30 text-white/80 border border-white/10 flex items-center justify-center text-xs font-bold transition-colors shadow-sm"
+                  className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-slate-950/60 active:bg-white/40 text-white border border-white/15 flex items-center justify-center text-sm font-bold transition-colors shadow-sm"
+                  style={{ minWidth: '40px', minHeight: '40px' }}
                 >
                   ▼
                 </button>
@@ -544,11 +569,12 @@ export default function App() {
                 <button
                   onTouchStart={(e) => { e.preventDefault(); simulateKeyDown('p', 'KeyP'); setTimeout(() => simulateKeyUp('p', 'KeyP'), 100); }}
                   onClick={() => { simulateKeyDown('p', 'KeyP'); setTimeout(() => simulateKeyUp('p', 'KeyP'), 100); }}
-                  className="w-10 h-10 rounded-full bg-emerald-600/20 active:bg-emerald-500/40 text-emerald-300 font-extrabold border border-emerald-500/20 shadow-md backdrop-blur-xs flex items-center justify-center text-[10px] sm:text-xs transition-colors"
+                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-emerald-600/30 active:bg-emerald-500/50 text-emerald-300 font-extrabold border border-emerald-500/30 shadow-md backdrop-blur-xs flex items-center justify-center text-xs sm:text-sm transition-colors"
+                  style={{ minWidth: '44px', minHeight: '44px' }}
                 >
                   B
                 </button>
-                <span className="text-[6px] text-stone-400 font-bold uppercase tracking-wider mt-0.5">Cura</span>
+                <span className="text-[7px] text-stone-300 font-bold uppercase tracking-wider mt-0.5">Cura</span>
               </div>
 
               {/* Button A - Interagir/Ação */}
@@ -558,11 +584,12 @@ export default function App() {
                   onPointerUp={() => simulateKeyUp(' ', 'Space')}
                   onTouchStart={(e) => { e.preventDefault(); simulateKeyDown(' ', 'Space'); }}
                   onTouchEnd={(e) => { e.preventDefault(); simulateKeyUp(' ', 'Space'); }}
-                  className="w-11 h-11 rounded-full bg-rose-600/25 active:bg-rose-500/45 text-rose-300 font-extrabold border border-rose-500/25 shadow-md backdrop-blur-xs flex items-center justify-center text-xs sm:text-sm transition-colors"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-rose-600/35 active:bg-rose-500/60 text-rose-200 font-extrabold border border-rose-500/35 shadow-md backdrop-blur-xs flex items-center justify-center text-sm sm:text-base transition-colors"
+                  style={{ minWidth: '48px', minHeight: '48px' }}
                 >
                   A
                 </button>
-                <span className="text-[6px] text-stone-400 font-bold uppercase tracking-wider mt-0.5">Ação</span>
+                <span className="text-[7px] text-stone-300 font-bold uppercase tracking-wider mt-0.5">Ação</span>
               </div>
             </div>
           </div>
